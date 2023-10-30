@@ -1,6 +1,9 @@
+from typing import Optional
+
 import librosa
 import pretty_midi
 import torch
+import numpy as np
 import matplotlib.pyplot as plt
 
 
@@ -18,16 +21,40 @@ def plot_piano_roll(piano_roll: torch.Tensor, fs: int, start_pitch: int = 0, end
                              fmin=pretty_midi.note_number_to_hz(start_pitch))
 
 
-def plot_cross_similarity(cross_similarity: torch.Tensor) -> None:
+def plot_cross_similarity(cross_similarity: torch.Tensor,
+                          beat_alignment: Optional[np.ndarray] = None) -> None:
     """Plots a cross-similarity matrix.
+
+    If the beat alignment is provided, additionally plots alignment path.
 
     Args:
         cross_similarity: A cross-similarity matrix of shape 
-          (score_frames, perf_frames).
+          (perf_frames, score_frames).
+        beat_alignment: Beatwise alignment array in frames of shape
+          (2, num_beats), where the first and second rows correspond to 
+            performance and score, respectively.
     """
     plt.figure(figsize=(10, 10))
     plt.imshow(cross_similarity)
+    
+    if beat_alignment is not None:
+        plt.plot(beat_alignment[1, :], beat_alignment[0, :], label='Alignment', color='white')
+        plt.legend()
+
     plt.title('Cross-similarity matrix')
-    plt.xlabel('Performance frames')
-    plt.ylabel('Score frames')
+    plt.xlabel('Score frames')
+    plt.ylabel('Performance frames')
     plt.colorbar()
+
+
+def seconds_to_frames(t: np.ndarray, fs: int) -> np.ndarray:
+    """Converts time in seconds to frames.
+
+    Args:
+        t: Time array in seconds.
+        fs: Sampling frequency.
+    
+    Returns:
+        Time array in frames.
+    """
+    return (t * fs).astype('int')
