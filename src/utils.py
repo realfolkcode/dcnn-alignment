@@ -22,7 +22,8 @@ def plot_piano_roll(piano_roll: torch.Tensor, fs: int, start_pitch: int = 0, end
 
 
 def plot_cross_similarity(cross_similarity: torch.Tensor,
-                          beat_alignment: Optional[np.ndarray] = None) -> None:
+                          beat_alignment: Optional[np.ndarray] = None,
+                          inflection_points: Optional[np.ndarray] = None) -> None:
     """Plots a cross-similarity matrix.
 
     If the beat alignment is provided, additionally plots alignment path.
@@ -33,12 +34,18 @@ def plot_cross_similarity(cross_similarity: torch.Tensor,
         beat_alignment: Beatwise alignment array in frames of shape
           (2, num_beats), where the first and second rows correspond to 
             performance and score, respectively.
+        inflection_points: The inflection points of shape (n, 2).
     """
     plt.figure(figsize=(10, 10))
     plt.imshow(cross_similarity)
     
     if beat_alignment is not None:
         plt.plot(beat_alignment[1, :], beat_alignment[0, :], label='Alignment', color='white')
+        plt.legend()
+    
+    if inflection_points is not None:
+        plt.scatter(inflection_points[:, 1], inflection_points[:, 0], 
+                    label='Inflection points', color='red', marker='x')
         plt.legend()
 
     plt.title('Cross-similarity matrix')
