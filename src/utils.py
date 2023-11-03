@@ -37,7 +37,7 @@ def plot_cross_similarity(cross_similarity: torch.Tensor,
         inflection_points: The inflection points of shape (n, 2).
     """
     plt.figure(figsize=(10, 10))
-    plt.imshow(cross_similarity)
+    plt.imshow(cross_similarity[0])
     
     if beat_alignment is not None:
         plt.plot(beat_alignment[1, :], beat_alignment[0, :], label='Alignment', color='white')
