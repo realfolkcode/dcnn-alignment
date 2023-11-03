@@ -30,7 +30,7 @@ def plot_cross_similarity(cross_similarity: torch.Tensor,
 
     Args:
         cross_similarity: A cross-similarity matrix of shape 
-          (perf_frames, score_frames).
+          (1, perf_frames, score_frames).
         beat_alignment: Beatwise alignment array in frames of shape
           (2, num_beats), where the first and second rows correspond to 
             performance and score, respectively.

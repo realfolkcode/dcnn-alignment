@@ -35,11 +35,12 @@ def calculate_cross_similarity(perf_roll: torch.Tensor,
         eps: Small value to avoid division by zero.
 
     Returns:
-        A cross-similarity matrix of shape (perf_frames, score_frames).
+        A cross-similarity matrix of shape (1, perf_frames, score_frames).
     """
     normalized_perf_roll = perf_roll / (torch.norm(perf_roll, dim=0) + eps)
     normalized_score_roll = score_roll / (torch.norm(score_roll, dim=0) + eps)
     cross_similarity = torch.cdist(normalized_perf_roll, normalized_score_roll)
+    cross_similarity = cross_similarity.unsqueeze(0)
     return cross_similarity
 
 
