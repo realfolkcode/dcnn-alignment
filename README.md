@@ -7,7 +7,7 @@ Instead of training on the MSMD dataset as in the original paper, we train on [A
 ## TODO
 
  - [x] Calculate cross-similarity
- - [ ] Add structural augmentations
+ - [x] Add structural augmentations
  - [ ] Prepare dataset class
  - [ ] Add model implementations
  - [ ] Write training pipeline
