@@ -79,9 +79,9 @@ def augment_performance(perf_roll: torch.Tensor,
 
         # Add inflection points
         if i > 0:
-            inflection_points[i * 2 - 1] = segment_alignment[:, 0]
+            inflection_points[i * 2 - 1] = torch.from_numpy(segment_alignment[:, 0])
         if i < len(segment_timestamps) - 1:
-            inflection_points[i * 2] = segment_alignment[:, -1]
+            inflection_points[i * 2] = torch.from_numpy(segment_alignment[:, -1])
 
     return new_perf_roll, new_beat_alignment, inflection_points
 
