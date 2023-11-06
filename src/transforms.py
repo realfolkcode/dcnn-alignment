@@ -87,6 +87,8 @@ def augment_performance(perf_roll: torch.Tensor,
 
 
 class RandomJumps(nn.Module):
+    """Piano roll augmentation with structural repeats."""
+
     def __init__(self,
                  fs: int,
                  max_num_jumps: int = 2,
