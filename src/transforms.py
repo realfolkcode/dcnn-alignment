@@ -35,7 +35,7 @@ def sample_jumps(beat_alignment: np.ndarray,
 def augment_performance(perf_roll: torch.Tensor,
                         beat_alignment: np.ndarray,
                         segment_timestamps: List[Tuple[int, int]],
-                        max_silence: int = 200) -> Tuple[torch.Tensor, np.ndarray, np.ndarray]:
+                        max_silence: int = 200) -> Tuple[torch.Tensor, np.ndarray, torch.Tensor]:
     """Augments a performance with jumps given the timestamps.
 
     Args:
@@ -55,7 +55,7 @@ def augment_performance(perf_roll: torch.Tensor,
     new_beat_alignment = np.zeros((2, 0)).astype('int')
     perf_beats = beat_alignment[0]
 
-    inflection_points = np.zeros((2 * len(segment_timestamps) - 2, 2))
+    inflection_points = torch.zeros((2 * len(segment_timestamps) - 2, 2))
 
     offset = 0
     for i, ts in enumerate(segment_timestamps):
@@ -108,7 +108,7 @@ class RandomJumps(nn.Module):
 
     def forward(self,
                 perf_roll: torch.Tensor,
-                beat_alignment: np.ndarray):
+                beat_alignment: np.ndarray) -> Tuple[torch.Tensor, np.ndarray, torch.Tensor]:
         """Augments a performance with jumps.
 
         Args:
