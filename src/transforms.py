@@ -33,6 +33,7 @@ def sample_jumps(beat_alignment: np.ndarray,
 
 
 def augment_performance(perf_roll: torch.Tensor,
+                        score_roll: torch.Tensor,
                         beat_alignment: np.ndarray,
                         segment_timestamps: List[Tuple[int, int]],
                         max_silence: int = 200) -> Tuple[torch.Tensor, np.ndarray, torch.Tensor]:
@@ -40,6 +41,7 @@ def augment_performance(perf_roll: torch.Tensor,
 
     Args:
         perf_roll: Performance piano roll tensor of shape (perf_frames, 128).
+        score_roll: Score piano roll tensor of shape (score_frames, 128).
         beat_alignment: Beatwise alignment array in frames of shape 
           (2, num_beats), where the first and second rows correspond 
           to performance and score, respectively.
@@ -82,6 +84,12 @@ def augment_performance(perf_roll: torch.Tensor,
             inflection_points[i * 2 - 1] = torch.from_numpy(segment_alignment[:, 0])
         if i < len(segment_timestamps) - 1:
             inflection_points[i * 2] = torch.from_numpy(segment_alignment[:, -1])
+    
+    # Normalize inflection points
+    new_perf_frames = new_perf_roll.shape[0]
+    score_frames = score_roll.shape[0]
+    inflection_points[:, 0] /= new_perf_frames
+    inflection_points[:, 1] /= score_frames
 
     return new_perf_roll, new_beat_alignment, inflection_points
 
@@ -108,11 +116,13 @@ class RandomJumps(nn.Module):
 
     def forward(self,
                 perf_roll: torch.Tensor,
+                score_roll: torch.Tensor,
                 beat_alignment: np.ndarray) -> Tuple[torch.Tensor, np.ndarray, torch.Tensor]:
         """Augments a performance with jumps.
 
         Args:
             perf_roll: Performance piano roll tensor of shape (perf_frames, 128).
+            score_roll: Score piano roll tensor of shape (score_frames, 128).
             beat_alignment: Beatwise alignment array in frames of shape 
               (2, num_beats), where the first and second rows correspond 
               to performance and score, respectively.
@@ -123,6 +133,7 @@ class RandomJumps(nn.Module):
         """
         segment_timestamps = sample_jumps(beat_alignment, max_num_jumps=self.max_num_jumps)
         aug_perf_roll, aug_beat_alignment, inflection_points = augment_performance(perf_roll,
+                                                                                   score_roll,
                                                                                    beat_alignment,
                                                                                    segment_timestamps,
                                                                                    max_silence=self.max_silence)

@@ -44,7 +44,10 @@ def plot_cross_similarity(cross_similarity: torch.Tensor,
         plt.legend()
     
     if inflection_points is not None:
-        plt.scatter(inflection_points[:, 1], inflection_points[:, 0], 
+        perf_frames = cross_similarity.shape[1]
+        score_frames = cross_similarity.shape[2]
+        plt.scatter(inflection_points[:, 1] * score_frames, 
+                    inflection_points[:, 0] * perf_frames, 
                     label='Inflection points', color='red', marker='x')
         plt.legend()
 
