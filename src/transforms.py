@@ -5,6 +5,7 @@ from torch import nn
 
 
 def sample_jumps(beat_alignment: np.ndarray,
+                 min_num_jumps: int = 0,
                  max_num_jumps: int = 2) -> List[Tuple[int, int]]:
     """Samples segments with jumps.
 
@@ -12,6 +13,7 @@ def sample_jumps(beat_alignment: np.ndarray,
         beat_alignment: Beatwise alignment array in frames of shape 
           (2, num_beats), where the first and second rows correspond 
           to performance and score, respectively.
+        min_num_jumps: The minumum number of jumps.
         max_num_jumps: The maximum number of jumps.
 
     Returns:
@@ -22,8 +24,10 @@ def sample_jumps(beat_alignment: np.ndarray,
     timestamps = []
 
     indices = np.arange(len(perf_beats))
+    num_jumps = torch.randint(min_num_jumps, max_num_jumps + 1, size=(1,)).item()
+
     start_idx = 0
-    for _ in range(max_num_jumps):
+    for _ in range(num_jumps):
         end_idx = torch.randint(start_idx + 1, indices[-1], size=(1,)).item()
         timestamps.append((perf_beats[start_idx], perf_beats[end_idx]))
         start_idx = torch.randint(0, end_idx, size=(1,)).item()
@@ -36,6 +40,7 @@ def augment_performance(perf_roll: torch.Tensor,
                         score_roll: torch.Tensor,
                         beat_alignment: np.ndarray,
                         segment_timestamps: List[Tuple[int, int]],
+                        max_num_jumps: int,
                         max_silence: int = 200) -> Tuple[torch.Tensor, np.ndarray, torch.Tensor]:
     """Augments a performance with jumps given the timestamps.
 
@@ -46,18 +51,18 @@ def augment_performance(perf_roll: torch.Tensor,
           (2, num_beats), where the first and second rows correspond 
           to performance and score, respectively.
         segment_timestamps: A list of pairs of segment timestamps in frames.
+        max_num_jumps: The maximum number of jumps.
         max_silence: The maximal duration of silence before jumps in frames.
 
     Returns:
         Augmented performance piano roll with jumps; the new beat alignment;
-          and the inflection points of shape (2 * k - 2, 2), where `k` is the
-          number of segments.
+          and the inflection points of shape (2 * `max_num_jumps`, 2).
     """
     new_perf_roll = torch.zeros((0, 128))
     new_beat_alignment = np.zeros((2, 0)).astype('int')
     perf_beats = beat_alignment[0]
 
-    inflection_points = torch.zeros((2 * len(segment_timestamps) - 2, 2))
+    inflection_points = torch.zeros((2 * max_num_jumps, 2))
 
     offset = 0
     for i, ts in enumerate(segment_timestamps):
@@ -99,18 +104,21 @@ class RandomJumps(nn.Module):
 
     def __init__(self,
                  fs: int,
+                 min_num_jumps: int = 0,
                  max_num_jumps: int = 2,
                  max_silence_s: float = 0):
         """Initializes an instance of RandomJumps transformation.
 
         Args:
             fs: Sampling frequency.
+            min_num_jumps: The minumum number of jumps.
             max_num_jumps: The maximum number of jumps.
             max_silence_s: The maximal duration of silence before jumps 
               in seconds.
         """
         super().__init__()
         self.fs = fs
+        self.min_num_jumps = min_num_jumps
         self.max_num_jumps = max_num_jumps
         self.max_silence = int(max_silence_s * fs)
 
@@ -128,13 +136,13 @@ class RandomJumps(nn.Module):
               to performance and score, respectively.
         Returns:
             Augmented performance piano roll with jumps; the new beat alignment;
-              and the inflection points of shape (2 * k - 2, 2), where `k` is the
-              number of segments.
+              and the inflection points of shape (2 * `max_num_jumps`, 2).
         """
         segment_timestamps = sample_jumps(beat_alignment, max_num_jumps=self.max_num_jumps)
         aug_perf_roll, aug_beat_alignment, inflection_points = augment_performance(perf_roll,
                                                                                    score_roll,
                                                                                    beat_alignment,
                                                                                    segment_timestamps,
+                                                                                   self.max_num_jumps,
                                                                                    max_silence=self.max_silence)
         return aug_perf_roll, aug_beat_alignment, inflection_points
