@@ -24,7 +24,7 @@ def sample_jumps(beat_alignment: np.ndarray,
     indices = np.arange(len(perf_beats))
     start_idx = 0
     for _ in range(max_num_jumps):
-        end_idx = torch.randint(start_idx, indices[-1], size=(1,)).item()
+        end_idx = torch.randint(start_idx + 1, indices[-1], size=(1,)).item()
         timestamps.append((perf_beats[start_idx], perf_beats[end_idx]))
         start_idx = torch.randint(0, end_idx, size=(1,)).item()
     timestamps.append((perf_beats[start_idx], perf_beats[-1]))
@@ -70,8 +70,8 @@ def augment_performance(perf_roll: torch.Tensor,
         new_perf_roll = torch.cat((new_perf_roll, torch.zeros((num_silence, 128))), dim=0)
 
         # Retrieve beat indices for alignment
-        start_idx =  np.argwhere(perf_beats == start_idx).item()
-        end_idx = np.argwhere(perf_beats == end_idx).item()
+        start_idx = np.argwhere(perf_beats == start_idx)[0].item()
+        end_idx = np.argwhere(perf_beats == end_idx)[0].item()
         # Construct new beat alignment from segment alignments
         segment_alignment = beat_alignment[:, start_idx:end_idx].copy()
         segment_alignment[0] -= segment_alignment[0, 0]
