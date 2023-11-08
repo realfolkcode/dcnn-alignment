@@ -38,11 +38,11 @@ def calculate_cross_similarity(perf_roll: torch.Tensor,
     Returns:
         A cross-similarity matrix of shape (1, perf_frames, score_frames).
     """
-    normalized_perf_roll = perf_roll / (torch.norm(perf_roll, dim=0) + eps)
-    normalized_score_roll = score_roll / (torch.norm(score_roll, dim=0) + eps)
-    cross_similarity = torch.cdist(normalized_perf_roll, normalized_score_roll)
-    cross_similarity = cross_similarity.unsqueeze(0)
-    return cross_similarity
+    cross_sim = torch.sparse.mm(perf_roll.to_sparse(), score_roll.T)
+    cross_sim /= (torch.norm(perf_roll, dim=1).unsqueeze(1) + 1e-6)
+    cross_sim /= (torch.norm(score_roll, dim=1).unsqueeze(1).T + 1e-6)
+    cross_sim = cross_sim.unsqueeze(0)
+    return cross_sim
 
 
 def construct_beat_alignment(perf_beats: np.ndarray, 
