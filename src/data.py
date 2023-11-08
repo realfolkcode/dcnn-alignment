@@ -39,8 +39,8 @@ def calculate_cross_similarity(perf_roll: torch.Tensor,
         A cross-similarity matrix of shape (1, perf_frames, score_frames).
     """
     cross_sim = torch.sparse.mm(perf_roll.to_sparse(), score_roll.T)
-    cross_sim /= (torch.norm(perf_roll, dim=1).unsqueeze(1) + 1e-6)
-    cross_sim /= (torch.norm(score_roll, dim=1).unsqueeze(1).T + 1e-6)
+    cross_sim /= (torch.norm(perf_roll, dim=1).unsqueeze(1) + eps)
+    cross_sim /= (torch.norm(score_roll, dim=1).unsqueeze(1).T + eps)
     cross_sim = cross_sim.unsqueeze(0)
     return cross_sim
 
