@@ -26,7 +26,8 @@ class DCNN(nn.Module):
         self.conv1 = nn.Conv2d(in_channels=1,
                                out_channels=hidden_channels[0],
                                kernel_size=5,
-                               padding=2)
+                               padding=2,
+                               bias=False)
         self.pool1 = nn.MaxPool2d(kernel_size=2)
         self.bn1 = nn.BatchNorm2d(hidden_channels[0])
 
@@ -34,7 +35,8 @@ class DCNN(nn.Module):
                                out_channels=hidden_channels[1],
                                kernel_size=3,
                                dilation=2,
-                               padding=2)
+                               padding=2,
+                               bias=False)
         self.pool2 = nn.MaxPool2d(kernel_size=2)
         self.bn2 = nn.BatchNorm2d(hidden_channels[1])
 
@@ -42,7 +44,8 @@ class DCNN(nn.Module):
                                out_channels=hidden_channels[2],
                                kernel_size=3,
                                dilation=3,
-                               padding=3)
+                               padding=3,
+                               bias=False)
         self.pool3 = nn.MaxPool2d(kernel_size=2)
         self.bn3 = nn.BatchNorm2d(hidden_channels[2])
 
