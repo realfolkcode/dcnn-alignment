@@ -138,7 +138,9 @@ class RandomJumps(nn.Module):
             Augmented performance piano roll with jumps; the new beat alignment;
               and the inflection points of shape (2 * `max_num_jumps`, 2).
         """
-        segment_timestamps = sample_jumps(beat_alignment, max_num_jumps=self.max_num_jumps)
+        segment_timestamps = sample_jumps(beat_alignment,
+                                          min_num_jumps=self.min_num_jumps, 
+                                          max_num_jumps=self.max_num_jumps)
         aug_perf_roll, aug_beat_alignment, inflection_points = augment_performance(perf_roll,
                                                                                    score_roll,
                                                                                    beat_alignment,

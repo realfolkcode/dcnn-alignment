@@ -1,10 +1,11 @@
-from typing import Optional
+from typing import Optional, Dict
 
 import librosa
 import pretty_midi
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
+import yaml
 
 
 def plot_piano_roll(piano_roll: torch.Tensor, fs: int, start_pitch: int = 0, end_pitch: int = 128) -> None:
@@ -68,3 +69,17 @@ def seconds_to_frames(t: np.ndarray, fs: int) -> np.ndarray:
         Time array in frames.
     """
     return (t * fs).astype('int')
+
+
+def load_config(config_path: str) -> Dict:
+    """Loads a yaml config for setting experiment parameters.
+    
+    Args:
+        config_path: The path to a yaml config.
+    
+    Returns:
+        A dictionary with experiment parameters.
+    """
+    with open(config_path, "r") as f:
+        config = yaml.load(f, loader=yaml.FullLoader)
+    return config

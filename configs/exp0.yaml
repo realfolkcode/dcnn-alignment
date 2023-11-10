@@ -1,0 +1,21 @@
+data:
+  asap_dir: "../asap_dataset"
+  val_ratio: 0.2
+  batch_size: 32
+  num_workers: 4
+
+transforms:
+  img_size: 256
+  fs: 10
+  min_num_jumps: 1
+  max_num_jumps: 1
+  max_silence_s: 8
+
+model:
+  hidden_channels: [16, 32, 64]
+
+train:
+  num_epochs: 10
+  lr: 1e-3
+  weight_decay: 0
+  device: 'cuda'
