@@ -1,5 +1,5 @@
 data:
-  asap_dir: "../asap_dataset"
+  asap_dir: "../asap-dataset"
   val_ratio: 0.2
   batch_size: 32
   num_workers: 4
@@ -16,6 +16,6 @@ model:
 
 train:
   num_epochs: 10
-  lr: 1e-3
+  lr: 0.001
   weight_decay: 0
   device: 'cuda'
