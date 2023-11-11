@@ -1,3 +1,4 @@
+from typing import Optional, Callable
 from tqdm import tqdm
 import torch
 import torch.nn as nn
@@ -13,7 +14,8 @@ class Trainer:
                  val_loader: DataLoader,
                  num_epochs: int,
                  optimizer: Optimizer,
-                 device: str):
+                 device: str,
+                 logging_fn: Optional[Callable] = None):
         """Initializes an instance of Trainer.
 
         Args:
@@ -22,6 +24,7 @@ class Trainer:
             num_epochs: The number of epochs.
             optimizer: Optimizer.
             device: Device.
+            logging_fn: Metrics logger.
         """
         self.criterion = nn.MSELoss()
         self.train_loader = train_loader
@@ -29,6 +32,7 @@ class Trainer:
         self.num_epochs = num_epochs
         self.optimizer = optimizer
         self.device = device
+        self.logging_fn = logging_fn
 
     def _train_epoch(self, model: nn.Module) -> float:
         """One epoch pass."""
@@ -71,3 +75,6 @@ class Trainer:
             print(f"Epoch: {epoch}, Train loss: {train_loss}")
             val_loss = self._validate(model)
             print(f"Epoch: {epoch}, Val loss: {val_loss}")
+            if self.logging_fn is not None:
+                self.logging_fn({"train_loss": train_loss,
+                                 "val_loss": val_loss})
