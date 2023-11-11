@@ -81,5 +81,5 @@ def load_config(config_path: str) -> Dict:
         A dictionary with experiment parameters.
     """
     with open(config_path, "r") as f:
-        config = yaml.load(f, loader=yaml.FullLoader)
+        config = yaml.load(f, Loader=yaml.FullLoader)
     return config
