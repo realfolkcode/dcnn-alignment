@@ -90,7 +90,6 @@ class DCNN(nn.Module):
         x = F.relu(x)
         x = self.fc3(x)
         #x = F.relu(x)
-        x = torch.sigmoid(x)
 
         bs = x.shape[0]
         x = x.reshape((bs, self.max_num_jumps, 2))

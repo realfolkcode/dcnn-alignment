@@ -15,7 +15,8 @@ class Trainer:
                  num_epochs: int,
                  optimizer: Optimizer,
                  device: str,
-                 logging_fn: Optional[Callable] = None):
+                 metrics_logger: Optional[Callable] = None,
+                 images_logger: Optional[Callable] = None):
         """Initializes an instance of Trainer.
 
         Args:
@@ -24,7 +25,8 @@ class Trainer:
             num_epochs: The number of epochs.
             optimizer: Optimizer.
             device: Device.
-            logging_fn: Metrics logger.
+            metrics_logger: Metrics logger.
+            images_logger: Images logger.
         """
         self.criterion = nn.MSELoss()
         self.train_loader = train_loader
@@ -32,7 +34,8 @@ class Trainer:
         self.num_epochs = num_epochs
         self.optimizer = optimizer
         self.device = device
-        self.logging_fn = logging_fn
+        self.metrics_logger = metrics_logger
+        self.images_logger = images_logger
 
     def _train_epoch(self, model: nn.Module) -> float:
         """One epoch pass."""
@@ -55,13 +58,16 @@ class Trainer:
         """Validation."""
         val_loss = 0
         model.eval()
-        for batch in tqdm(self.val_loader):
+        for i, batch in tqdm(enumerate(self.val_loader)):
             x = batch['image'].to(self.device)
             y_true = batch['target'].to(self.device)
 
             y_pred = model(x)
             loss = self.criterion(y_pred, y_true)
             val_loss += loss.item()
+
+            if i == 0 and self.images_logger is not None:
+                self.images_logger(x, y_pred)
         return val_loss
 
     def train(self, model: nn.Module) -> None:
@@ -75,6 +81,6 @@ class Trainer:
             print(f"Epoch: {epoch}, Train loss: {train_loss}")
             val_loss = self._validate(model)
             print(f"Epoch: {epoch}, Val loss: {val_loss}")
-            if self.logging_fn is not None:
-                self.logging_fn({"train_loss": train_loss,
-                                 "val_loss": val_loss})
+            if self.metrics_logger is not None:
+                self.metrics_logger({"train_loss": train_loss,
+                                     "val_loss": val_loss})

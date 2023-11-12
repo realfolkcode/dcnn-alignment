@@ -5,12 +5,21 @@ from src.transforms import RandomJumps
 from src.data import CrossSimilarityDataset
 from src.dcnn import DCNN
 import argparse
+from functools import partial
 
 import wandb
 import torch
 from torchvision.transforms.v2 import Resize
 from torch.utils.data import DataLoader
 from torch.optim import Adam
+
+
+def log_images(images, y_pred, table):
+    log_images = images.cpu().numpy()
+    log_y_pred = y_pred.cpu().numpy()
+    bs = len(log_images)
+    for i in range(min(4, bs)):
+        table.add_data(log_images[i], log_y_pred[i])
 
 
 def main(args):
@@ -23,6 +32,8 @@ def main(args):
         wandb.login()
         wandb.init(project=project_name,
                    config=config)
+        columns=["image", "y_pred"]
+        val_table = wandb.Table(columns=columns)
     
     asap_dir = config['data']['asap_dir']
     val_ratio = config['data']['val_ratio']
@@ -66,12 +77,22 @@ def main(args):
     
     model = DCNN(img_size, hidden_channels, max_num_jumps * 2).to(device)
     optimizer = Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+
+    if project_name is not None:
+        metrics_logger = wandb.log
+        images_logger = partial(log_images, table=val_table)
+    else:
+        metrics_logger = None
+        images_logger = None
+
     trainer = Trainer(train_loader,
                       val_loader,
                       num_epochs,
                       optimizer,
                       device,
-                      logging_fn=wandb.log)
+                      metrics_logger=metrics_logger,
+                      images_logger=images_logger)
+    
     trainer.train(model)
 
 
