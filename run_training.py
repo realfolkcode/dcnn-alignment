@@ -20,6 +20,7 @@ def log_images(images, y_pred, table):
     bs = len(log_images)
     for i in range(min(4, bs)):
         table.add_data(log_images[i], log_y_pred[i])
+    wandb.log({"val_predictions" : table})
 
 
 def main(args):
