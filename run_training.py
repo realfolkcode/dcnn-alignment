@@ -19,7 +19,7 @@ def log_images(images, y_pred, table):
     log_y_pred = y_pred.cpu().numpy()
     bs = len(log_images)
     for i in range(min(4, bs)):
-        table.add_data(log_images[i], log_y_pred[i])
+        table.add_data(wandb.Image(log_images[i]), log_y_pred[i])
     wandb.log({"val_predictions" : table})
 
 
