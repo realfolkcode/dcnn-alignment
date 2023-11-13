@@ -10,7 +10,7 @@
 *.mp4
 *.wav
 *.pt
-test_*.sh
+*.sh
 data/
 
 # User-specific files

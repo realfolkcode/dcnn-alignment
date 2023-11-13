@@ -1,0 +1,117 @@
+{
+    "os": "Linux-5.4.0-166-generic-x86_64-with-glibc2.31",
+    "python": "3.10.13",
+    "heartbeatAt": "2023-11-13T09:42:05.549749",
+    "startedAt": "2023-11-13T09:42:04.717146",
+    "docker": null,
+    "cuda": null,
+    "args": [
+        "--config_path",
+        "./configs/exp0.yaml",
+        "--project_name",
+        "video-datasets"
+    ],
+    "state": "running",
+    "program": "/home/dmgvrlv/code/dcnn-alignment/run_training.py",
+    "codePathLocal": "run_training.py",
+    "codePath": "run_training.py",
+    "git": {
+        "remote": "https://github.com/realfolkcode/dcnn-alignment",
+        "commit": "f80467266de4b0cf0572678f1ed39c461cf6e4aa"
+    },
+    "email": "wtfomgrofl@mail.ru",
+    "root": "/home/dmgvrlv/code/dcnn-alignment",
+    "host": "dlrig",
+    "username": "dmgvrlv",
+    "executable": "/home/dmgvrlv/miniconda3/envs/dcnn/bin/python",
+    "cpu_count": 6,
+    "cpu_count_logical": 12,
+    "cpu_freq": {
+        "current": 1.8394166666666667,
+        "min": 800.0,
+        "max": 4700.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2.77,
+            "min": 800.0,
+            "max": 4700.0
+        },
+        {
+            "current": 1.62,
+            "min": 800.0,
+            "max": 4700.0
+        },
+        {
+            "current": 2.496,
+            "min": 800.0,
+            "max": 4700.0
+        },
+        {
+            "current": 1.409,
+            "min": 800.0,
+            "max": 4700.0
+        },
+        {
+            "current": 1.283,
+            "min": 800.0,
+            "max": 4700.0
+        },
+        {
+            "current": 1.912,
+            "min": 800.0,
+            "max": 4700.0
+        },
+        {
+            "current": 1.409,
+            "min": 800.0,
+            "max": 4700.0
+        },
+        {
+            "current": 0.818,
+            "min": 800.0,
+            "max": 4700.0
+        },
+        {
+            "current": 3.873,
+            "min": 800.0,
+            "max": 4700.0
+        },
+        {
+            "current": 2.429,
+            "min": 800.0,
+            "max": 4700.0
+        },
+        {
+            "current": 0.83,
+            "min": 800.0,
+            "max": 4700.0
+        },
+        {
+            "current": 1.224,
+            "min": 800.0,
+            "max": 4700.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 439.04007720947266,
+            "used": 228.59777069091797
+        }
+    },
+    "gpu": "NVIDIA GeForce GTX 1080 Ti",
+    "gpu_count": 2,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA GeForce GTX 1080 Ti",
+            "memory_total": 11716132864
+        },
+        {
+            "name": "NVIDIA GeForce GTX 1080 Ti",
+            "memory_total": 11721506816
+        }
+    ],
+    "memory": {
+        "total": 62.72208786010742
+    }
+}
