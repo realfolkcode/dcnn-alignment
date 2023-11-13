@@ -50,8 +50,13 @@ class DCNN(nn.Module):
         self.bn3 = nn.BatchNorm2d(hidden_channels[2])
 
         self.flatten = nn.Flatten()
+
         self.fc1 = nn.Linear((img_size // 8)**2 * hidden_channels[2], 4096)
+        self.drop1 = nn.Dropout(0.5)
+
         self.fc2 = nn.Linear(4096, 1024)
+        self.drop2 = nn.Dropout(0.5)
+
         self.fc3 = nn.Linear(1024, max_num_jumps * 2)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -84,12 +89,16 @@ class DCNN(nn.Module):
         x = self.bn3(x)
 
         x = self.flatten(x)
+
         x = self.fc1(x)
         x = F.relu(x)
+        x = self.drop1(x)
+
         x = self.fc2(x)
         x = F.relu(x)
+        x = self.drop2(x)
+
         x = self.fc3(x)
-        #x = F.relu(x)
 
         bs = x.shape[0]
         x = x.reshape((bs, self.max_num_jumps, 2))
