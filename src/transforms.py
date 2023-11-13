@@ -99,8 +99,72 @@ def augment_performance(perf_roll: torch.Tensor,
     return new_perf_roll, new_beat_alignment, inflection_points
 
 
+def augment_cross_similarity(cross_similarity: torch.Tensor,
+                             beat_alignment: np.ndarray,
+                             segment_timestamps: List[Tuple[int, int]],
+                             max_num_jumps: int,
+                             max_silence: int = 200) -> Tuple[torch.Tensor, np.ndarray, torch.Tensor]:
+    """Augments a cross-similarity matrix with jumps given the timestamps.
+
+    Args:
+        cross_similarity: A cross-similarity matrix of shape
+          (1, perf_frames, score_frames).
+        beat_alignment: Beatwise alignment array in frames of shape
+          (2, num_beats), where the first and second rows correspond
+          to performance and score, respectively.
+        segment_timestamps: A list of pairs of segment timestamps in frames.
+        max_num_jumps: The maximum number of jumps.
+        max_silence: The maximal duration of silence before jumps in frames.
+
+    Returns:
+        Augmented cross-similarity matrix with jumps; the new beat alignment;
+          and the inflection points of shape (2 * `max_num_jumps`, 2).
+    """
+    perf_frames = cross_similarity.shape[1]
+    score_frames = cross_similarity.shape[2]
+
+    new_cross_similarity = torch.zeros((1, 0, score_frames))
+    new_beat_alignment = np.zeros((2, 0)).astype('int')
+    perf_beats = beat_alignment[0]
+
+    inflection_points = torch.zeros((2 * max_num_jumps, 2))
+
+    offset = 0
+    for i, ts in enumerate(segment_timestamps):
+        # Construct new cross-similarity from segments
+        start_idx, end_idx = ts
+        segment = cross_similarity[:, start_idx:end_idx, :]
+        new_cross_similarity = torch.cat((new_cross_similarity, segment), dim=1)
+        # Add silence
+        num_silence = torch.randint(0, max_silence, size=(1,)).item()
+        new_cross_similarity = torch.cat((new_cross_similarity, torch.zeros((1, num_silence, score_frames))), dim=1)
+
+        # Retrieve beat indices for alignment
+        start_idx = np.argwhere(perf_beats == start_idx)[0].item()
+        end_idx = np.argwhere(perf_beats == end_idx)[0].item()
+        # Construct new beat alignment from segment alignments
+        segment_alignment = beat_alignment[:, start_idx:end_idx].copy()
+        segment_alignment[0] -= segment_alignment[0, 0]
+        segment_alignment[0] += offset
+        new_beat_alignment = np.concatenate((new_beat_alignment, segment_alignment), axis=1)
+        offset = new_beat_alignment[0, -1] + beat_alignment[0, end_idx] - beat_alignment[0, end_idx-1] + num_silence
+
+        # Add inflection points
+        if i > 0:
+            inflection_points[i * 2 - 1] = torch.from_numpy(segment_alignment[:, 0])
+        if i < len(segment_timestamps) - 1:
+            inflection_points[i * 2] = torch.from_numpy(segment_alignment[:, -1])
+
+    # Normalize inflection points
+    new_perf_frames = new_cross_similarity.shape[1]
+    inflection_points[:, 0] /= new_perf_frames
+    inflection_points[:, 1] /= score_frames
+
+    return new_cross_similarity, new_beat_alignment, inflection_points
+
+
 class RandomJumps(nn.Module):
-    """Piano roll augmentation with structural repeats."""
+    """Cross-similarity augmentation with structural repeats."""
 
     def __init__(self,
                  fs: int,
@@ -113,7 +177,7 @@ class RandomJumps(nn.Module):
             fs: Sampling frequency.
             min_num_jumps: The minumum number of jumps.
             max_num_jumps: The maximum number of jumps.
-            max_silence_s: The maximal duration of silence before jumps 
+            max_silence_s: The maximal duration of silence before jumps
               in seconds.
         """
         super().__init__()
@@ -123,28 +187,26 @@ class RandomJumps(nn.Module):
         self.max_silence = int(max_silence_s * fs)
 
     def forward(self,
-                perf_roll: torch.Tensor,
-                score_roll: torch.Tensor,
+                cross_similarity: torch.Tensor,
                 beat_alignment: np.ndarray) -> Tuple[torch.Tensor, np.ndarray, torch.Tensor]:
         """Augments a performance with jumps.
 
         Args:
-            perf_roll: Performance piano roll tensor of shape (perf_frames, 128).
-            score_roll: Score piano roll tensor of shape (score_frames, 128).
-            beat_alignment: Beatwise alignment array in frames of shape 
-              (2, num_beats), where the first and second rows correspond 
+            cross_similarity: A cross-similarity matrix of shape
+              (1, perf_frames, score_frames).
+            beat_alignment: Beatwise alignment array in frames of shape
+              (2, num_beats), where the first and second rows correspond
               to performance and score, respectively.
         Returns:
-            Augmented performance piano roll with jumps; the new beat alignment;
+            Augmented cross-similarity with jumps; the new beat alignment;
               and the inflection points of shape (2 * `max_num_jumps`, 2).
         """
         segment_timestamps = sample_jumps(beat_alignment,
-                                          min_num_jumps=self.min_num_jumps, 
+                                          min_num_jumps=self.min_num_jumps,
                                           max_num_jumps=self.max_num_jumps)
-        aug_perf_roll, aug_beat_alignment, inflection_points = augment_performance(perf_roll,
-                                                                                   score_roll,
-                                                                                   beat_alignment,
-                                                                                   segment_timestamps,
-                                                                                   self.max_num_jumps,
-                                                                                   max_silence=self.max_silence)
-        return aug_perf_roll, aug_beat_alignment, inflection_points
+        aug_cross_similarity, aug_beat_alignment, inflection_points = augment_cross_similarity(cross_similarity,
+                                                                                               beat_alignment,
+                                                                                               segment_timestamps,
+                                                                                               self.max_num_jumps,
+                                                                                               max_silence=self.max_silence)
+        return aug_cross_similarity, aug_beat_alignment, inflection_points

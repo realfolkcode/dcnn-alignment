@@ -1,4 +1,5 @@
 from typing import List, Dict, Optional, Callable
+import os
 
 from .utils import seconds_to_frames
 
@@ -7,6 +8,7 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import Dataset
 import numpy as np
+from tqdm import tqdm
 
 
 def extract_piano_roll(midi_path: str, fs: int = 40) -> torch.Tensor:
@@ -67,6 +69,36 @@ def construct_beat_alignment(perf_beats: np.ndarray,
 
     beat_alignment = np.vstack((perf_beats_f, score_beats_f))
     return beat_alignment
+
+
+def make_dataset(data_dir: str,
+                 pairs: List[Dict],
+                 fs: int) -> None:
+    """Calculates and saves cross-similarity matrices and beat alignments.
+
+    Args:
+        data_dir: The directory to store matrices.
+        pairs: A list of pairs of performance and score and their alignment.
+        fs: Piano roll sampling frequency.
+    """
+    os.makedirs(data_dir, exist_ok=True)
+
+    for idx in tqdm(range(len(pairs))):
+        perf_path = pairs[idx]['perf']
+        score_path = pairs[idx]['score']
+
+        perf_roll = extract_piano_roll(perf_path, fs=fs)
+        score_roll = extract_piano_roll(score_path, fs=fs)
+        cross_similarity = calculate_cross_similarity(perf_roll, score_roll)
+        sample = {'image': cross_similarity}
+
+        perf_beats = np.array(pairs[idx]['perf_beats'])
+        score_beats = np.array(pairs[idx]['score_beats'])
+        beat_alignment = construct_beat_alignment(perf_beats, score_beats, fs)
+        sample['alignment'] = beat_alignment
+
+        filepath = os.path.join(data_dir, f"sample_{idx}.pt")
+        torch.save(sample, filepath)
 
 
 class CrossSimilarityDataset(Dataset):
