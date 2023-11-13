@@ -105,52 +105,54 @@ class CrossSimilarityDataset(Dataset):
     """Performance-score cross-similarity matrices dataset."""
 
     def __init__(self,
-                 pairs: List[Dict],
-                 fs: int,
+                 data_dir: str,
                  transform: Callable,
                  structural_transform: Optional[Callable] = None,
                  inference_only: bool = False):
         """Initializes an instance of dataset class.
 
         Args:
-            pairs: A list of performance-score path pairs and (optionally) their aligned
-              beat arrays. Each dictionary in a list must contain keys `perf`, `score`.
-              If `structural_transform` is not None, then `perf_beats`, and `score_beats`
-              must also be keys.
-            fs: Piano roll sampling frequency.
+            data_dir: The directory where cross-similarities and alignments are stored.
             transform: Transformation to apply to cross-similarity matrices (e.g., resize).
             structural_transform: Structural transformations to apply to performance
               piano rolls.
             inference_only: If True, dataset does not contain ground truth inflection points.
         """
-        self.pairs = pairs
-        self.fs = fs
+        self.data_dir = data_dir
         self.transform = transform
         self.structural_transform = structural_transform
         self.inference_only = inference_only
+        self.data_paths = self._get_paths(data_dir)
+
+    def _get_paths(self, data_dir: str) -> List[str]:
+        """Retrieves all the .pt files in data directory.
+
+        Args:
+            data_dir: The directory where cross-similarities and alignments are stored.
+
+        Returns:
+            A list of paths to .pt files.
+        """
+        data_paths = os.listdir(data_dir)
+        data_paths = list(filter(lambda s: s.endswith('.pt'), data_paths))
+        data_paths = [os.path.join(self.data_dir, s) for s in data_paths]
+        return data_paths
 
     def __len__(self):
-        return len(self.pairs)
+        return len(self.data_paths)
 
     def __getitem__(self, idx):
-        perf_path = self.pairs[idx]['perf']
-        score_path = self.pairs[idx]['score']
-        if self.structural_transform is not None:
-            perf_beats = np.array(self.pairs[idx]['perf_beats'])
-            score_beats = np.array(self.pairs[idx]['score_beats'])
-
-        perf_roll = extract_piano_roll(perf_path, fs=self.fs)
-        score_roll = extract_piano_roll(score_path, fs=self.fs)
+        sample = torch.load(self.data_paths[idx])
+        x = sample['image']
+        beat_alignment = sample['alignment']
 
         if self.structural_transform is not None:
-            beat_alignment = construct_beat_alignment(perf_beats, score_beats, self.fs)
-            perf_roll, beat_alignment, inflection_points = self.structural_transform(perf_roll, score_roll, beat_alignment)
-
-        cross_similarity = calculate_cross_similarity(perf_roll, score_roll)
-        cross_similarity = self.transform(cross_similarity)
-        sample = {'image': cross_similarity}
+            x, beat_alignment, inflection_points = self.structural_transform(x, beat_alignment)
+        
+        x = self.transform(x)
+        new_sample = {'image': x}
 
         if not self.inference_only:
-            sample['target'] = inflection_points
-
-        return sample
+            new_sample['target'] = inflection_points
+        
+        return new_sample
