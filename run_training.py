@@ -1,25 +1,28 @@
 from src.trainer import Trainer
-from src.utils import load_config
+from src.utils import load_config, plot_cross_similarity
 from src.transforms import RandomJumps
 from src.data import CrossSimilarityDataset
 from src.dcnn import DCNN
 import argparse
-from functools import partial
+import matplotlib.pyplot as plt
+import warnings
+
+warnings.simplefilter('ignore')
 
 import wandb
 import torch
 from torchvision.transforms.v2 import Resize
 from torch.utils.data import DataLoader
-from torch.optim import Adam
+from torch.optim import AdamW
 
 
-def log_images(images, y_pred, table):
+def log_images(images, y_pred):
     log_images = images.cpu().numpy()
     log_y_pred = y_pred.cpu().numpy()
     bs = len(log_images)
     for i in range(min(4, bs)):
-        table.add_data(wandb.Image(log_images[i]), log_y_pred[i])
-    wandb.log({"val_predictions" : table})
+        plot_cross_similarity(log_images[i], inflection_points=log_y_pred[i])
+        wandb.log({"val_predictions": plt})
 
 
 def main(args):
@@ -32,8 +35,6 @@ def main(args):
         wandb.login()
         wandb.init(project=project_name,
                    config=config)
-        columns=["image", "y_pred"]
-        val_table = wandb.Table(columns=columns)
     
     train_dir = config['data']['train_dir']
     val_dir = config['data']['val_dir']
@@ -72,11 +73,11 @@ def main(args):
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
     
     model = DCNN(img_size, hidden_channels, max_num_jumps * 2).to(device)
-    optimizer = Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+    optimizer = AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
 
     if project_name is not None:
         metrics_logger = wandb.log
-        images_logger = partial(log_images, table=val_table)
+        images_logger = log_images
     else:
         metrics_logger = None
         images_logger = None
