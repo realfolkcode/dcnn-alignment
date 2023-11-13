@@ -90,6 +90,7 @@ def make_dataset(data_dir: str,
         perf_roll = extract_piano_roll(perf_path, fs=fs)
         score_roll = extract_piano_roll(score_path, fs=fs)
         cross_similarity = calculate_cross_similarity(perf_roll, score_roll)
+        cross_similarity = cross_similarity.to(torch.float16)
         sample = {'image': cross_similarity}
 
         perf_beats = np.array(pairs[idx]['perf_beats'])
