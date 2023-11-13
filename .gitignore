@@ -12,6 +12,7 @@
 *.pt
 *.sh
 data/
+wandb/
 
 # User-specific files
 *.rsuser
