@@ -1,6 +1,5 @@
 from src.trainer import Trainer
 from src.utils import load_config
-from src.asap import ASAPWrapper
 from src.transforms import RandomJumps
 from src.data import CrossSimilarityDataset
 from src.dcnn import DCNN
@@ -36,8 +35,8 @@ def main(args):
         columns=["image", "y_pred"]
         val_table = wandb.Table(columns=columns)
     
-    asap_dir = config['data']['asap_dir']
-    val_ratio = config['data']['val_ratio']
+    train_dir = config['data']['train_dir']
+    val_dir = config['data']['val_dir']
     batch_size = config['data']['batch_size']
     num_workers = config['data']['num_workers']
 
@@ -54,21 +53,17 @@ def main(args):
     weight_decay = config['train']['weight_decay']
     device = torch.device(config['train']['device'])
 
-    asap_wrapper = ASAPWrapper(asap_dir, val_ratio=val_ratio, random_seed=42)
-
     transform = Resize((img_size, img_size))
     jumps_transform = RandomJumps(fs, 
                                   min_num_jumps=min_num_jumps, 
                                   max_num_jumps=max_num_jumps, 
                                   max_silence_s=max_silence_s)
 
-    train_dataset = CrossSimilarityDataset(asap_wrapper.train_paths,
-                                           fs,
+    train_dataset = CrossSimilarityDataset(train_dir,
                                            transform,
                                            structural_transform=jumps_transform,
                                            inference_only=False)
-    val_dataset = CrossSimilarityDataset(asap_wrapper.val_paths,
-                                         fs,
+    val_dataset = CrossSimilarityDataset(val_dir,
                                          transform,
                                          structural_transform=jumps_transform,
                                          inference_only=False)

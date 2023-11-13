@@ -1,6 +1,6 @@
 data:
-  asap_dir: "../asap-dataset"
-  val_ratio: 0.2
+  train_dir: "../dcnn-data/train"
+  val_dir: "../dcnn-data/val"
   batch_size: 32
   num_workers: 4
 
