@@ -70,9 +70,6 @@ class DCNN(nn.Module):
         Returns:
             A batch of inflection points of shape (B, max_num_jumps, 2).
         """
-        # Pre-normalize
-        x = x * 2 - 1
-
         x = self.conv1(x)
         x = self.pool1(x)
         x = F.relu(x)

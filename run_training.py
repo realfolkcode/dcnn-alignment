@@ -11,7 +11,7 @@ warnings.simplefilter('ignore')
 
 import wandb
 import torch
-from torchvision.transforms.v2 import Resize
+from torchvision.transforms import v2
 from torch.utils.data import DataLoader
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
@@ -44,6 +44,8 @@ def main(args):
 
     img_size = config['transforms']['img_size']
     fs = config['transforms']['fs']
+    pix_mean = config['transforms']['pix_mean']
+    pix_std = config['transforms']['pix_std']
     min_num_jumps = config['transforms']['min_num_jumps']
     max_num_jumps = config['transforms']['max_num_jumps']
     max_silence_s = config['transforms']['max_silence_s']
@@ -55,7 +57,8 @@ def main(args):
     weight_decay = config['train']['weight_decay']
     device = torch.device(config['train']['device'])
 
-    transform = Resize((img_size, img_size))
+    transform = v2.Compose([v2.Resize((img_size, img_size)),
+                            v2.Normalize(mean=[pix_mean], std=[pix_std])])
     jumps_transform = RandomJumps(fs, 
                                   min_num_jumps=min_num_jumps, 
                                   max_num_jumps=max_num_jumps, 

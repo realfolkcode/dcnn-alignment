@@ -7,6 +7,8 @@ data:
 transforms:
   img_size: 256
   fs: 10
+  pix_mean: 0.031
+  pix_std: 0.152
   min_num_jumps: 1
   max_num_jumps: 1
   max_silence_s: 8
