@@ -14,6 +14,7 @@ import torch
 from torchvision.transforms.v2 import Resize
 from torch.utils.data import DataLoader
 from torch.optim import AdamW
+from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 
 
 def log_images(images, y_pred):
@@ -74,6 +75,7 @@ def main(args):
     
     model = DCNN(img_size, hidden_channels, max_num_jumps * 2).to(device)
     optimizer = AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
+    scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=5, T_mult=2)
 
     if project_name is not None:
         metrics_logger = wandb.log
@@ -88,7 +90,8 @@ def main(args):
                       optimizer,
                       device,
                       metrics_logger=metrics_logger,
-                      images_logger=images_logger)
+                      images_logger=images_logger,
+                      scheduler=scheduler)
     
     trainer.train(model)
 

@@ -10,6 +10,6 @@ Instead of training on the MSMD dataset as in the original paper, we train on [A
  - [x] Add structural augmentations
  - [x] Prepare dataset class
  - [x] Add model implementations
- - [ ] Write training pipeline
+ - [x] Write training pipeline
  - [ ] Write inference pipeline
  

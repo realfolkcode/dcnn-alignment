@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.optim import Optimizer
+from torch.optim.lr_scheduler import LRScheduler
 
 
 class Trainer:
@@ -16,7 +17,8 @@ class Trainer:
                  optimizer: Optimizer,
                  device: str,
                  metrics_logger: Optional[Callable] = None,
-                 images_logger: Optional[Callable] = None):
+                 images_logger: Optional[Callable] = None,
+                 scheduler: Optional[LRScheduler] = None):
         """Initializes an instance of Trainer.
 
         Args:
@@ -27,6 +29,7 @@ class Trainer:
             device: Device.
             metrics_logger: Metrics logger.
             images_logger: Images logger.
+            scheduler: Learning rate scheduler.
         """
         self.criterion = nn.MSELoss()
         self.train_loader = train_loader
@@ -36,12 +39,15 @@ class Trainer:
         self.device = device
         self.metrics_logger = metrics_logger
         self.images_logger = images_logger
+        self.scheduler = scheduler
 
-    def _train_epoch(self, model: nn.Module) -> float:
+    def _train_epoch(self, model: nn.Module, epoch: int) -> float:
         """One epoch pass."""
         epoch_loss = 0
+        num_iters = len(self.train_loader)
+
         model.train()
-        for batch in tqdm(self.train_loader):
+        for i, batch in enumerate(tqdm(self.train_loader)):
             self.optimizer.zero_grad()
             x = batch['image'].to(self.device)
             y_true = batch['target'].to(self.device)
@@ -50,6 +56,8 @@ class Trainer:
             loss = self.criterion(y_pred, y_true)
             loss.backward()
             self.optimizer.step()
+            if self.scheduler is not None:
+                self.scheduler.step(epoch + i / num_iters)
             epoch_loss += loss.item()
         return epoch_loss
 
@@ -77,7 +85,7 @@ class Trainer:
             model: DCNN model.
         """
         for epoch in range(self.num_epochs):
-            train_loss = self._train_epoch(model)
+            train_loss = self._train_epoch(model, epoch)
             print(f"Epoch: {epoch}, Train loss: {train_loss}")
             val_loss = self._validate(model)
             print(f"Epoch: {epoch}, Val loss: {val_loss}")
