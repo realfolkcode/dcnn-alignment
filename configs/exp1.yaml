@@ -5,7 +5,7 @@ data:
   num_workers: 4
 
 transforms:
-  img_size: 256
+  img_size: 128
   fs: 10
   pix_mean: 0.031
   pix_std: 0.152
