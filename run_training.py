@@ -57,7 +57,7 @@ def main(args):
     weight_decay = config['train']['weight_decay']
     device = torch.device(config['train']['device'])
 
-    transform = v2.Compose([v2.Resize((img_size, img_size)),
+    transform = v2.Compose([v2.Resize((img_size, img_size), antialias=True),
                             v2.Normalize(mean=[pix_mean], std=[pix_std])])
     jumps_transform = RandomJumps(fs, 
                                   min_num_jumps=min_num_jumps, 
