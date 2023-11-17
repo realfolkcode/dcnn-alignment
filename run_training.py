@@ -28,6 +28,7 @@ def log_images(images, y_pred):
 
 def main(args):
     config_path = args.config_path
+    checkpoint_path = args.checkpoint_path
     project_name = args.project_name
 
     config = load_config(config_path)
@@ -92,6 +93,7 @@ def main(args):
                       num_epochs,
                       optimizer,
                       device,
+                      checkpoint_path,
                       metrics_logger=metrics_logger,
                       images_logger=images_logger,
                       scheduler=scheduler)
@@ -102,6 +104,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--config_path', type=str, required=True, help='path to the model config')
+    parser.add_argument('--checkpoint_path', type=str, required=True, help='checkpoint path')
     parser.add_argument('--project_name', type=str, required=False, default=None, help='wandb project name')
     args = parser.parse_args()
     main(args)

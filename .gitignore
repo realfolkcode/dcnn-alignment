@@ -13,6 +13,7 @@
 *.sh
 data/
 wandb/
+checkpoints/
 
 # User-specific files
 *.rsuser

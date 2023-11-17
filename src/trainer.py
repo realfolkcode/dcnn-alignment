@@ -16,6 +16,7 @@ class Trainer:
                  num_epochs: int,
                  optimizer: Optimizer,
                  device: str,
+                 checkpoint_path: str,
                  metrics_logger: Optional[Callable] = None,
                  images_logger: Optional[Callable] = None,
                  scheduler: Optional[LRScheduler] = None):
@@ -27,6 +28,7 @@ class Trainer:
             num_epochs: The number of epochs.
             optimizer: Optimizer.
             device: Device.
+            checkpoint_path: Checkpoint path.
             metrics_logger: Metrics logger.
             images_logger: Images logger.
             scheduler: Learning rate scheduler.
@@ -37,6 +39,7 @@ class Trainer:
         self.num_epochs = num_epochs
         self.optimizer = optimizer
         self.device = device
+        self.checkpoint_path = checkpoint_path
         self.metrics_logger = metrics_logger
         self.images_logger = images_logger
         self.scheduler = scheduler
@@ -92,3 +95,4 @@ class Trainer:
             if self.metrics_logger is not None:
                 self.metrics_logger({"train_loss": train_loss,
                                      "val_loss": val_loss})
+        torch.save(model.state_dict(), self.checkpoint_path)
